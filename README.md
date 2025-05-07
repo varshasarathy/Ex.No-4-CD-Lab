@@ -18,50 +18,74 @@ To write a YACC program to recognize a valid variable which starts with a letter
 EX4.l
 
 ```
+// ex4.l file
 %{
-#include "y.tab.h"
+#include "ex4.tab.h"
+#include <stdio.h>
 %}
+
 %%
-"int" { return INT; } 
-"float" { return FLOAT; }
-"double" { return DOUBLE; }
-[a-zA-Z][a-zA-Z0-9]* {
-printf("\nIdentifier is %s", yytext); return ID;
-}
-. { return yytext[0]; }
-\n { return 0; }
+"int"       { return INT; }
+"float"     { return FLOAT; }
+"double"    { return DOUBLE; }
+
+[a-zA-Z_][a-zA-Z0-9_]*    { printf("Identifier: %s\n", yytext); return ID; }
+
+[ \t\n]+    ;       // Ignore whitespace
+.           { return yytext[0]; } // Return other characters (punctuation, etc.)
 %%
-int yywrap() 
-{ 
-return 1;
-}
+int yywrap() { return 1; }
+
+
 ```
 EX4.y
 
 ```
 %{
 #include <stdio.h>
-/* This YACC program is for recognizing the Expression */
+#include <stdlib.h>
+extern char *yytext; // Declare yytext to fix the undeclared error
+
+void yyerror(const char *s);
+int yylex(void);  // Declare yylex to use the lexer
 %}
+
 %token ID INT FLOAT DOUBLE
-%% D: T L;
-L: L ',' ID   | ID;
-T: INT | FLOAT | DOUBLE;
+
 %%
-extern FILE *yyin; int main() {
-do {
-yyparse();
-} while (!feof(yyin)); return 0;
+D: T L { printf("Valid declaration.\n"); }
+ ;
+
+L: L ',' ID
+ | ID
+ ;
+
+T: INT
+ | FLOAT
+ | DOUBLE
+ ;
+
+%%
+extern FILE *yyin;
+
+int main() {
+    printf("Enter declaration (e.g., int a,b):\n");
+    yyparse(); // Start parsing
+    return 0;
 }
-void yyerror(char *s) { 
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+    printf("Lexical error at token: %s\n", yytext);  // Debugging output
 }
+
+
+
 ```
 ## Output
 
-![Screenshot 2025-05-07 103327](https://github.com/user-attachments/assets/34c89904-bda5-45fd-abd2-09a5903ff47e)
+![image](https://github.com/user-attachments/assets/0e98f324-3d26-4afd-92e1-3836da55c6a8)
 
-
-![Screenshot 2025-05-07 103729](https://github.com/user-attachments/assets/acd0563f-253f-4693-9d4c-90e276eba31e)
 
 ## Result
 A YACC program to recognize a valid variable which starts with a letter followed by any number of letters or digits is executed successfully and the output is verified.
