@@ -15,76 +15,62 @@ To write a YACC program to recognize a valid variable which starts with a letter
 8.	Enter a statement as input and the valid variables are identified as output.
 ## PROGRAM
 
-EX4.l
+## EX4.l
 
 ```
-// ex4.l file
 %{
-#include "ex4.tab.h"
-#include <stdio.h>
+#include "expr4.tab.h"
 %}
 
 %%
-"int"       { return INT; }
-"float"     { return FLOAT; }
-"double"    { return DOUBLE; }
 
-[a-zA-Z_][a-zA-Z0-9_]*    { printf("Identifier: %s\n", yytext); return ID; }
+[a-zA-Z][a-zA-Z0-9]*    { return VARIABLE; }
+.|\n                    { return INVALID; }
 
-[ \t\n]+    ;       // Ignore whitespace
-.           { return yytext[0]; } // Return other characters (punctuation, etc.)
 %%
-int yywrap() { return 1; }
-
+int yywrap() {
+    return 1;
+}
 
 ```
-EX4.y
+
+## EX4.y
 
 ```
 %{
 #include <stdio.h>
 #include <stdlib.h>
-extern char *yytext; // Declare yytext to fix the undeclared error
 
+int yylex(void);
 void yyerror(const char *s);
-int yylex(void);  // Declare yylex to use the lexer
 %}
 
-%token ID INT FLOAT DOUBLE
+%token VARIABLE INVALID
 
 %%
-D: T L { printf("Valid declaration.\n"); }
- ;
 
-L: L ',' ID
- | ID
- ;
-
-T: INT
- | FLOAT
- | DOUBLE
- ;
+input:
+    VARIABLE { printf("Valid variable name\n"); }
+  | INVALID  { printf("Invalid variable name\n"); }
+  ;
 
 %%
-extern FILE *yyin;
 
 int main() {
-    printf("Enter declaration (e.g., int a,b):\n");
-    yyparse(); // Start parsing
+    printf("Enter a variable name: ");
+    yyparse();
     return 0;
 }
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
-    printf("Lexical error at token: %s\n", yytext);  // Debugging output
+    // we handle invalid input in the grammar, so this can stay empty
 }
-
 
 
 ```
 ## Output
 
-![image](https://github.com/user-attachments/assets/0e98f324-3d26-4afd-92e1-3836da55c6a8)
+![image](https://github.com/user-attachments/assets/6578bc30-eb1d-465f-ae29-164d04bb770d)
 
 
 ## Result
